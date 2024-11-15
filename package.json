@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node-dev src/index.ts",
+    "ts-build": "tsc -b"
+  },
+  "author": "Ido madaRR",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/express": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-async-errors": "^3.1.1",
+    "socket.io": "^4.8.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.6.3"
+  }
+}
