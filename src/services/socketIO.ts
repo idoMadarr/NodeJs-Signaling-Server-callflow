@@ -2,54 +2,67 @@ import { Server } from 'socket.io';
 
 let io: Server;
 
+const callerIdToSocketId = new Map();
+
 export default {
   socketInit: (server: any) => {
     io = new Server(server, { pingInterval: 5000, pingTimeout: 5000 });
     console.log('Socket Init');
 
     io.use((socket, next) => {
-      console.log('hi');
-      if (socket.handshake.query) {
-        let callerId = socket.handshake.query.callerId;
-        // @ts-ignore
-        socket.user = callerId;
-        next();
-      }
+      const callerId = socket.handshake.query.callerId;
+      // @ts-ignore:
+      socket.callerId = callerId;
+      callerIdToSocketId.set(callerId, socket.id); // Map callerId to socket.id
+      next();
     });
 
     io.on('connection', socket => {
-      //   console.log(socket.user, 'Connected');
-      console.log(socket.id, 'Connected2');
+      console.log(socket.id, typeof socket.id, callerIdToSocketId);
 
+      // step 1: Sending the offer to the callee id
       socket.on('call', data => {
-        let calleeId = data.calleeId;
-        let rtcMessage = data.rtcMessage;
+        const { calleeId, rtcMessage } = data;
+        const calleeSocketId = callerIdToSocketId.get(calleeId);
 
-        socket.to(calleeId).emit('newCall', {
-          callerId: socket.id,
-          rtcMessage: rtcMessage,
-        });
+        if (calleeSocketId) {
+          io.to(calleeSocketId).emit('newCall', {
+            // @ts-ignore:
+            callerId: socket.callerId,
+            rtcMessage: rtcMessage,
+          });
+        }
       });
 
       socket.on('answerCall', data => {
-        let callerId = data.callerId;
-        let rtcMessage = data.rtcMessage;
+        const { callerId, rtcMessage } = data;
+        const callerSocketId = callerIdToSocketId.get(callerId);
 
-        socket.to(callerId).emit('callAnswered', {
-          callee: socket.id,
-          rtcMessage: rtcMessage,
-        });
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('callAnswered', {
+            // @ts-ignore:
+            callee: socket.callerId,
+            rtcMessage: rtcMessage,
+          });
+        }
       });
 
       socket.on('ICEcandidate', data => {
-        console.log('ICEcandidate data.calleeId', data.calleeId);
-        let calleeId = data.calleeId;
-        let rtcMessage = data.rtcMessage;
+        const { calleeId, rtcMessage } = data;
+        const callerSocketId = callerIdToSocketId.get(calleeId);
 
-        socket.to(calleeId).emit('ICEcandidate', {
-          sender: socket.id,
-          rtcMessage: rtcMessage,
-        });
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('ICEcandidate', {
+            // @ts-ignore:
+            sender: socket.callerId,
+            rtcMessage: rtcMessage,
+          });
+        }
+      });
+
+      socket.on('disconnect', () => {
+        // @ts-ignore:
+        callerIdToSocketId.delete(socket.callerId);
       });
     });
   },
