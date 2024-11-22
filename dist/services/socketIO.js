@@ -39,6 +39,13 @@ exports.default = {
                     });
                 }
             });
+            socket.on('rejectCall', data => {
+                const { calleeId } = data;
+                const calleeSocketId = callerIdToSocketId.get(calleeId);
+                if (calleeSocketId) {
+                    io.to(calleeSocketId).emit('callRejected');
+                }
+            });
             socket.on('ICEcandidate', data => {
                 const { calleeId, rtcMessage } = data;
                 const callerSocketId = callerIdToSocketId.get(calleeId);
