@@ -35,6 +35,10 @@ const PORT = process.env.PORT;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use('/', express_1.default.static(path_1.default.join(__dirname, 'static')));
+// @ts-ignore:
+app.get('/init', (req, res) => {
+    return res.status(200).send(true);
+});
 const initServer = () => {
     const server = app.listen(PORT, () => {
         console.log(`Server started on port ${PORT}`);
