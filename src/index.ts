@@ -1,8 +1,11 @@
 import express from 'express';
 import path from 'path';
 import SocketIO from './services/socketIO';
+import * as dotenv from 'dotenv';
 
-const PORT = process.env.PORT || 8000;
+dotenv.config();
+
+const PORT = process.env.PORT;
 
 const app = express();
 app.use(express.json());

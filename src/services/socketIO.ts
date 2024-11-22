@@ -2,7 +2,7 @@ import { Server } from 'socket.io';
 
 let io: Server;
 
-const callerIdToSocketId = new Map();
+const callerIdToSocketId = new Map<string, string>();
 
 export default {
   socketInit: (server: any) => {
@@ -10,7 +10,7 @@ export default {
     console.log('Socket Init');
 
     io.use((socket, next) => {
-      const callerId = socket.handshake.query.callerId;
+      const callerId = socket.handshake.query.callerId as string;
       // @ts-ignore:
       socket.callerId = callerId;
       callerIdToSocketId.set(callerId, socket.id); // Map callerId to socket.id
@@ -28,7 +28,7 @@ export default {
         if (calleeSocketId) {
           io.to(calleeSocketId).emit('newCall', {
             // @ts-ignore:
-            callerId: socket.callerId,
+            callerId: socket.callerId!,
             rtcMessage: rtcMessage,
           });
         }
@@ -57,6 +57,15 @@ export default {
             sender: socket.callerId,
             rtcMessage: rtcMessage,
           });
+        }
+      });
+
+      socket.on('endCall', data => {
+        const { calleeId } = data;
+        const callerSocketId = callerIdToSocketId.get(calleeId);
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('callEnded');
         }
       });
 
