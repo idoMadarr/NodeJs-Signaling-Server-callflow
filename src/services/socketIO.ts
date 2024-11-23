@@ -78,6 +78,15 @@ export default {
         }
       });
 
+      socket.on('setCamera', data => {
+        const { otherUserId } = data;
+        const callerSocketId = callerIdToSocketId.get(otherUserId);
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('toggleCamera');
+        }
+      });
+
       socket.on('disconnect', () => {
         // @ts-ignore:
         callerIdToSocketId.delete(socket.callerId);
