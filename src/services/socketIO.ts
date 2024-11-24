@@ -9,18 +9,19 @@ export default {
     io = new Server(server, { pingInterval: 5000, pingTimeout: 5000 });
     console.log('Socket Init');
 
+    // Map callerId to socket.id
     io.use((socket, next) => {
       const callerId = socket.handshake.query.callerId as string;
       // @ts-ignore:
       socket.callerId = callerId;
-      callerIdToSocketId.set(callerId, socket.id); // Map callerId to socket.id
+      callerIdToSocketId.set(callerId, socket.id);
       next();
     });
 
     io.on('connection', socket => {
-      console.log(socket.id, typeof socket.id, callerIdToSocketId);
+      console.log(socket.id);
 
-      // step 1: Sending the offer to the callee id
+      // Sending the offer to the callee id
       socket.on('call', data => {
         const { calleeId, rtcMessage } = data;
         const calleeSocketId = callerIdToSocketId.get(calleeId);
@@ -34,6 +35,7 @@ export default {
         }
       });
 
+      // Sending answer back to caller
       socket.on('answerCall', data => {
         const { callerId, rtcMessage } = data;
         const callerSocketId = callerIdToSocketId.get(callerId);
@@ -47,6 +49,7 @@ export default {
         }
       });
 
+      // Sending reject to answer back to caller
       socket.on('rejectCall', data => {
         const { calleeId } = data;
         const calleeSocketId = callerIdToSocketId.get(calleeId);
@@ -56,6 +59,7 @@ export default {
         }
       });
 
+      // Establish peer connection
       socket.on('ICEcandidate', data => {
         const { calleeId, rtcMessage } = data;
         const callerSocketId = callerIdToSocketId.get(calleeId);
@@ -69,6 +73,7 @@ export default {
         }
       });
 
+      // Sending end call to the participant
       socket.on('endCall', data => {
         const { calleeId } = data;
         const callerSocketId = callerIdToSocketId.get(calleeId);
@@ -78,12 +83,23 @@ export default {
         }
       });
 
+      // Sending camera status (on/off) to the participant
       socket.on('setCamera', data => {
         const { otherUserId } = data;
         const callerSocketId = callerIdToSocketId.get(otherUserId);
 
         if (callerSocketId) {
           io.to(callerSocketId).emit('toggleCamera');
+        }
+      });
+
+      // Sending microphone status (mute/voice) to the participant
+      socket.on('setMicrophone', data => {
+        const { otherUserId } = data;
+        const callerSocketId = callerIdToSocketId.get(otherUserId);
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('toogleMicrophone');
         }
       });
 
