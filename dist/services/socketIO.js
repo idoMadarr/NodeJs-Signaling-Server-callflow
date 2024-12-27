@@ -7,25 +7,21 @@ exports.default = {
     socketInit: (server) => {
         io = new socket_io_1.Server(server, { pingInterval: 5000, pingTimeout: 5000 });
         console.log('Socket Init');
-        // Map callerId to socket.id
-        io.use((socket, next) => {
+        io.on('connection', socket => {
+            // Map callerId to socket.id
             const callerId = socket.handshake.query.callerId;
+            callerIdToSocketId.set(callerId, socket.id);
             // @ts-ignore:
             socket.callerId = callerId;
-            callerIdToSocketId.set(callerId, socket.id);
-            next();
-        });
-        io.on('connection', socket => {
-            console.log(socket.id);
             // Sending the offer to the callee id
             socket.on('call', data => {
-                const { calleeId, rtcMessage } = data;
+                const { calleeId, offer } = data;
                 const calleeSocketId = callerIdToSocketId.get(calleeId);
                 if (calleeSocketId) {
                     io.to(calleeSocketId).emit('newCall', {
                         // @ts-ignore:
                         callerId: socket.callerId,
-                        rtcMessage: rtcMessage,
+                        offer: offer,
                     });
                 }
             });
