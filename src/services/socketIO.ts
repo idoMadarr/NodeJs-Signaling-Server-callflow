@@ -25,7 +25,7 @@ export default {
           io.to(calleeSocketId).emit('newCall', {
             // @ts-ignore:
             callerId: socket.callerId!,
-            offer,
+            offer: offer,
           });
         }
       });
