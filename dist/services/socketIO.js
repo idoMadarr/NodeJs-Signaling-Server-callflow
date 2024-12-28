@@ -17,7 +17,6 @@ exports.default = {
             socket.on('call', data => {
                 const { calleeId, offer } = data;
                 const calleeSocketId = callerIdToSocketId.get(calleeId);
-                console.log(data, 'data');
                 if (calleeSocketId) {
                     io.to(calleeSocketId).emit('newCall', {
                         // @ts-ignore:
@@ -30,6 +29,7 @@ exports.default = {
             socket.on('answerCall', data => {
                 const { callerId, rtcMessage } = data;
                 const callerSocketId = callerIdToSocketId.get(callerId);
+                console.log(data, 'data2');
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('callAnswered', {
                         // @ts-ignore:
@@ -50,6 +50,7 @@ exports.default = {
             socket.on('ICEcandidate', data => {
                 const { calleeId, rtcMessage } = data;
                 const callerSocketId = callerIdToSocketId.get(calleeId);
+                console.log(data, 'ice candidate');
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('ICEcandidate', {
                         // @ts-ignore:
