@@ -17,6 +17,7 @@ exports.default = {
             socket.on('call', data => {
                 const { calleeId, offer } = data;
                 const calleeSocketId = callerIdToSocketId.get(calleeId);
+                console.log(data, 'data');
                 if (calleeSocketId) {
                     io.to(calleeSocketId).emit('newCall', {
                         // @ts-ignore:
