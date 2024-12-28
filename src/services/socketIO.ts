@@ -35,8 +35,6 @@ export default {
         const { callerId, rtcMessage } = data;
         const callerSocketId = callerIdToSocketId.get(callerId);
 
-        console.log(data, 'data2');
-
         if (callerSocketId) {
           io.to(callerSocketId).emit('callAnswered', {
             // @ts-ignore:
@@ -60,7 +58,7 @@ export default {
       socket.on('ICEcandidate', data => {
         const { calleeId, rtcMessage } = data;
         const callerSocketId = callerIdToSocketId.get(calleeId);
-        console.log(data, 'ice candidate');
+
         if (callerSocketId) {
           io.to(callerSocketId).emit('ICEcandidate', {
             // @ts-ignore:
