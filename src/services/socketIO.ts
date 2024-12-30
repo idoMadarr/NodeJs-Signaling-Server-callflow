@@ -101,9 +101,12 @@ export default {
 
       socket.on('unreachableCall', data => {
         const { callerId } = data;
+        console.log(data, '1');
+
         const callerSocketId = callerIdToSocketId.get(callerId);
 
         if (callerSocketId) {
+          console.log(callerSocketId, 'callerSocketId2');
           io.to(callerSocketId).emit('callEnded');
         }
       });
