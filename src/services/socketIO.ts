@@ -18,7 +18,7 @@ export default {
 
       // Sending the offer to the callee id
       socket.on('call', data => {
-        const { calleeId, offer } = data;
+        const { calleeId, offer, netInfo } = data;
         const calleeSocketId = callerIdToSocketId.get(calleeId);
 
         if (calleeSocketId) {
@@ -26,6 +26,7 @@ export default {
             // @ts-ignore:
             callerId: socket.callerId!,
             offer: offer,
+            netInfo: netInfo,
           });
         }
       });
@@ -95,6 +96,15 @@ export default {
 
         if (callerSocketId) {
           io.to(callerSocketId).emit('toogleMicrophone');
+        }
+      });
+
+      socket.on('unreachableCall', data => {
+        const { callerId } = data;
+        const callerSocketId = callerIdToSocketId.get(callerId);
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit('callEnded');
         }
       });
 

@@ -15,13 +15,14 @@ exports.default = {
             socket.callerId = callerId;
             // Sending the offer to the callee id
             socket.on('call', data => {
-                const { calleeId, offer } = data;
+                const { calleeId, offer, netInfo } = data;
                 const calleeSocketId = callerIdToSocketId.get(calleeId);
                 if (calleeSocketId) {
                     io.to(calleeSocketId).emit('newCall', {
                         // @ts-ignore:
                         callerId: socket.callerId,
                         offer: offer,
+                        netInfo: netInfo,
                     });
                 }
             });
@@ -79,6 +80,13 @@ exports.default = {
                 const callerSocketId = callerIdToSocketId.get(otherUserId);
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('toogleMicrophone');
+                }
+            });
+            socket.on('unreachableCall', data => {
+                const { callerId } = data;
+                const callerSocketId = callerIdToSocketId.get(callerId);
+                if (callerSocketId) {
+                    io.to(callerSocketId).emit('callEnded');
                 }
             });
             socket.on('disconnect', () => {
