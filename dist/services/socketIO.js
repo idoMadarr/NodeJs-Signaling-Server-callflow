@@ -11,16 +11,14 @@ exports.default = {
             // Map callerId to socket.id
             const callerId = socket.handshake.query.callerId;
             callerIdToSocketId.set(callerId, socket.id);
-            // @ts-ignore:
-            socket.callerId = callerId;
+            socket.userId = callerId;
             // Sending the offer to the callee id
             socket.on('call', data => {
-                const { calleeId, offer, netInfo } = data;
+                const { callerId, calleeId, offer, netInfo } = data;
                 const calleeSocketId = callerIdToSocketId.get(calleeId);
                 if (calleeSocketId) {
                     io.to(calleeSocketId).emit('newCall', {
-                        // @ts-ignore:
-                        callerId: socket.callerId,
+                        callerId: callerId,
                         offer: offer,
                         netInfo: netInfo,
                     });
@@ -32,8 +30,6 @@ exports.default = {
                 const callerSocketId = callerIdToSocketId.get(callerId);
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('callAnswered', {
-                        // @ts-ignore:
-                        callee: socket.callerId,
                         rtcMessage: rtcMessage,
                     });
                 }
@@ -48,20 +44,19 @@ exports.default = {
             });
             // Establish peer connection
             socket.on('ICEcandidate', data => {
-                const { calleeId, rtcMessage } = data;
-                const callerSocketId = callerIdToSocketId.get(calleeId);
+                const { otherUserId, rtcMessage } = data;
+                const callerSocketId = callerIdToSocketId.get(otherUserId);
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('ICEcandidate', {
-                        // @ts-ignore:
-                        sender: socket.callerId,
+                        sender: socket.userId,
                         rtcMessage: rtcMessage,
                     });
                 }
             });
             // Sending end call to the participant
             socket.on('endCall', data => {
-                const { calleeId } = data;
-                const callerSocketId = callerIdToSocketId.get(calleeId);
+                const { otherUserId } = data;
+                const callerSocketId = callerIdToSocketId.get(otherUserId);
                 if (callerSocketId) {
                     io.to(callerSocketId).emit('callEnded');
                 }
@@ -84,16 +79,13 @@ exports.default = {
             });
             socket.on('unreachableCall', data => {
                 const { callerId } = data;
-                console.log(data, '1');
                 const callerSocketId = callerIdToSocketId.get(callerId);
                 if (callerSocketId) {
-                    console.log(callerSocketId, 'callerSocketId2');
                     io.to(callerSocketId).emit('callEnded');
                 }
             });
             socket.on('disconnect', () => {
-                // @ts-ignore:
-                callerIdToSocketId.delete(socket.callerId);
+                callerIdToSocketId.delete(socket.userId);
             });
         });
     },

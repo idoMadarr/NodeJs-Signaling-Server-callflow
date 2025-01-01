@@ -12,9 +12,8 @@ app.use(express.json());
 
 app.use('/', express.static(path.join(__dirname, 'static')));
 
-// @ts-ignore:
-app.get('/init', (req: Request, res: Response) => {
-  return res.status(200).send(true);
+app.get('/init', (_req: Request, res: Response) => {
+  res.status(200).send(true);
 });
 
 const initServer = () => {
