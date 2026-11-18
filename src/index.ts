@@ -1,26 +1,18 @@
-import express, { Response, Request } from 'express';
-import path from 'path';
-import SocketIO from './services/socketIO';
-import * as dotenv from 'dotenv';
+import { loadConfig } from './config';
+import { createServer } from './app';
 
-dotenv.config();
+const cfg = loadConfig();
+const server = createServer(cfg);
 
-const PORT = process.env.PORT;
-
-const app = express();
-app.use(express.json());
-
-app.use('/', express.static(path.join(__dirname, 'static')));
-
-app.get('/init', (_req: Request, res: Response) => {
-  res.status(200).send(true);
+server.listen().then(port => {
+  console.log(`Server started on port ${port}`);
+  if (!cfg.turn.secret || !cfg.turn.urls.length) {
+    console.warn('TURN_SECRET / TURN_URLS not set: clients get STUN only (same-network or easy NATs).');
+  }
 });
 
-const initServer = () => {
-  const server = app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-    SocketIO.socketInit(server);
-  });
+const shutdown = () => {
+  server.close().finally(() => process.exit(0));
 };
-
-initServer();
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
